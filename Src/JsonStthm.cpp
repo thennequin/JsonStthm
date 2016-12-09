@@ -744,33 +744,41 @@ namespace JsonStthm
 
 	bool JsonValue::ReadNumericValue(const Char*& pString, JsonValue& oValue)
 	{
+		static double const c_pExpTable[] = {
+			1e5, 1e4, 1e3, 1e2, 10, 1,
+			0.1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6,
+			1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12,
+			1e-13, 1e-14, 1e-15, 1e-16, 1e-17
+		};
+		static double const* c_pExpLookup = &c_pExpTable[5];
+
 		bool bNeg = false;
-		long lValue = 0;
 		if (*pString == '-')
 		{
 			++pString;
 			bNeg = true;
 		}
 
+		uint64_t lValue = 0;
+		int iNegFract = 0;
+
 		while (IsDigit(*pString))
-			lValue = lValue * 10 + (*pString++ - '0');
+			lValue = lValue * 10 + (*pString++ & 0xF);
 
 		if (*pString == '.')
 		{
-			++pString;
-			double fValue = (double)lValue;
-			double fFraction = 1;
+			const char* pStart = ++pString;
+
 			while (IsDigit(*pString))
-			{
-				fFraction *= 0.1;
-				fValue += (*pString++ - '0') * fFraction;
-			}
+				lValue = lValue * 10 + (*pString++ & 0xF);
+
+			iNegFract = (int)(pString - pStart);
 
 			if (*pString == 'e' || *pString == 'E')
 			{
 				++pString;
 
-				double fBase = 10;
+				bool bNegExp = false;
 				if (*pString == '+')
 				{
 					++pString;
@@ -778,26 +786,21 @@ namespace JsonStthm
 				else if (*pString == '-')
 				{
 					++pString;
-					fBase = 0.1;
+					bNegExp = true;
 				}
 
-				unsigned int iExponent = 0;
-				while (*pString != 0 && IsDigit(*pString))
-					iExponent = (iExponent * 10) + (*pString++ - '0');
+				uint64_t iExpValue = 0;
+				while (IsDigit(*pString))
+					lValue = lValue * 10 + (*pString++ & 0xF);
 
-				double fPow = 1;
-				for (; iExponent; iExponent >>= 1, fBase *= fBase)
-					if (iExponent & 1)
-						fPow *= fBase;
-
-				fValue *= fPow;
+				iNegFract += bNegExp ? (int)iExpValue : -(int)iExpValue;
 			}
-			oValue = bNeg ? -fValue : fValue;
+			oValue = (bNeg ? -1.0 : 1.0) * lValue * c_pExpLookup[iNegFract];
 		}
 		else
 		{
 			//TODO manage E/e for long?
-			oValue = bNeg ? -lValue : lValue;
+			oValue = (long)(bNeg ? -lValue : lValue);
 		}
 		return true;
 	}
