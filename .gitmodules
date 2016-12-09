@@ -1,0 +1,6 @@
+[submodule "Tests-Externals/gason"]
+	path = Tests-Externals/gason
+	url = https://github.com/vivkin/gason.git
+[submodule "Tests-Externals/jsonxx"]
+	path = Tests-Externals/jsonxx
+	url = https://github.com/hjiang/jsonxx.git
