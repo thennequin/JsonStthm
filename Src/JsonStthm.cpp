@@ -85,6 +85,7 @@ namespace JsonStthm
 
 	JsonValue::~JsonValue()
 	{
+		StthmSafeFree(m_pName);
 		Reset();
 	}
 
