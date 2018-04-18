@@ -1,3 +1,5 @@
+**[Deprecated]** Is now part of UtilsCollection https://github.com/thennequin/UtilsCollection/tree/master/JsonStthm
+
 # JsonStthm
 Fast Json reader/writer
 
